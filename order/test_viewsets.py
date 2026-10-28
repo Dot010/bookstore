@@ -18,7 +18,7 @@ class OrderViewSetTest(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]["total"], 100)
+        self.assertEqual(response.data["results"][0]["total"], 100)
 
     def test_cria_pedido(self):
         url = reverse("order-list")

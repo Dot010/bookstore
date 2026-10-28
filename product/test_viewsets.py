@@ -15,7 +15,7 @@ class CategoryViewSetTest(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]["title"], "Fantasia")
+        self.assertEqual(response.data["results"][0]["title"], "Fantasia")
 
     def test_cria_categoria(self):
         url = reverse("category-list")
@@ -24,6 +24,7 @@ class CategoryViewSetTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Category.objects.count(), 2)
+
 
 class ProductViewSetTest(APITestCase):
     def setUp(self):
@@ -35,7 +36,7 @@ class ProductViewSetTest(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]["title"], "Duna")
+        self.assertEqual(response.data["results"][0]["title"], "Duna")
 
     def test_cria_produto(self):
         url = reverse("product-list")
@@ -51,3 +52,19 @@ class ProductViewSetTest(APITestCase):
         response = self.client.post(url, data, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class PaginationTest(APITestCase):
+    def test_lista_vem_paginada(self):
+        ProductFactory.create_batch(7)
+        response = self.client.get(reverse("product-list"))
+
+        self.assertEqual(response.data["count"], 7)
+        self.assertEqual(len(response.data["results"]), 5)
+        self.assertIsNotNone(response.data["next"])
+
+    def test_segunda_pagina_tem_o_resto(self):
+        ProductFactory.create_batch(7)
+        response = self.client.get(reverse("product-list"), {"page": 2})
+
+        self.assertEqual(len(response.data["results"]), 2)
