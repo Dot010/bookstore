@@ -8,7 +8,9 @@ class CategorySerializerTest(TestCase):
     def test_retorna_campos_esperados(self):
         category = CategoryFactory()
         data = CategorySerializer(category).data
-        self.assertEqual(set(data.keys()), {"id", "title", "slug", "description", "active"})
+        self.assertEqual(
+            set(data.keys()), {"id", "title", "slug", "description", "active"}
+        )
 
     def test_aceita_dados_validos(self):
         serializer = CategorySerializer(data={"title": "Fantasia", "slug": "fantasia"})
@@ -60,7 +62,9 @@ class ProductSerializerTest(TestCase):
         self.assertIn("title", serializer.errors)
 
     def test_rejeita_preco_zero(self):
-        serializer = ProductSerializer(data={"title": "Duna", "price": 0, "categories_id": []})
+        serializer = ProductSerializer(
+            data={"title": "Duna", "price": 0, "categories_id": []}
+        )
         self.assertFalse(serializer.is_valid())
         self.assertIn("price", serializer.errors)
 
