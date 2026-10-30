@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: bookstore
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    dockerCommand: sh start.sh
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: SQL_ENGINE
+        value: django.db.backends.postgresql
+      - key: SQL_HOST
+        fromDatabase:
+          name: bookstore-db
+          property: host
+      - key: SQL_PORT
+        fromDatabase:
+          name: bookstore-db
+          property: port
+      - key: SQL_DATABASE
+        fromDatabase:
+          name: bookstore-db
+          property: database
+      - key: SQL_USER
+        fromDatabase:
+          name: bookstore-db
+          property: user
+      - key: SQL_PASSWORD
+        fromDatabase:
+          name: bookstore-db
+          property: password
+
+databases:
+  - name: bookstore-db
+    plan: free
