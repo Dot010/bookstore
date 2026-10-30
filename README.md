@@ -16,3 +16,15 @@ poetry run python -c "from django.core.management.utils import get_random_secret
 
 ## Testes
 `poetry run python manage.py test`
+
+
+## Rodando com Docker
+
+```
+docker build -t bookstore .
+docker run --rm -p 8000:8000 --env-file .env bookstore
+```
+
+Acesse http://localhost:8000/bookstore/v1/product/
+
+> No `.env`, não use espaços em volta do `=` (o Docker não aceita).
