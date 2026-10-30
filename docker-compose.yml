@@ -8,6 +8,8 @@ services:
       test: ["CMD-SHELL", "pg_isready -U bookstore -d bookstore_dev"]
       interval: 5s
       retries: 10
+    networks:
+      - bookstore_net
 
   web:
     build: .
@@ -19,6 +21,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - bookstore_net
 
 volumes:
   postgres_data:
+
+networks:
+  bookstore_net:
+    driver: bridge
