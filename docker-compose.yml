@@ -1,0 +1,24 @@
+services:
+  db:
+    image: postgres:17
+    env_file: .env.dev
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookstore -d bookstore_dev"]
+      interval: 5s
+      retries: 10
+
+  web:
+    build: .
+    env_file: .env.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
