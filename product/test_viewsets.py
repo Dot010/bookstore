@@ -1,12 +1,21 @@
+from django.contrib.auth.models import User
 from django.urls import reverse
 from rest_framework import status
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from product.factories import CategoryFactory, ProductFactory
 from product.models import Category, Product
 
 
-class CategoryViewSetTest(APITestCase):
+class AutenticadoMixin:
+    def autenticar(self):
+        user = User.objects.create_user(username="admin", password="Senha-forte-123")
+        token = Token.objects.create(user=user)
+        self.client.credentials(HTTP_AUTHORIZATION="Token " + token.key)
+
+
+class CategoryViewSetTest(AutenticadoMixin, APITestCase):
     def setUp(self):
         self.category = CategoryFactory(title="Fantasia")
 
@@ -18,6 +27,7 @@ class CategoryViewSetTest(APITestCase):
         self.assertEqual(response.data["results"][0]["title"], "Fantasia")
 
     def test_cria_categoria(self):
+        self.autenticar()
         url = reverse("category-list")
         data = {"title": "Terror", "slug": "terror"}
         response = self.client.post(url, data, format="json")
@@ -25,8 +35,16 @@ class CategoryViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Category.objects.count(), 2)
 
+    def test_anonimo_nao_cria_categoria(self):
+        url = reverse("category-list")
+        data = {"title": "Terror", "slug": "terror"}
+        response = self.client.post(url, data, format="json")
 
-class ProductViewSetTest(APITestCase):
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(Category.objects.count(), 1)
+
+
+class ProductViewSetTest(AutenticadoMixin, APITestCase):
     def setUp(self):
         self.category = CategoryFactory()
         self.product = ProductFactory(title="Duna", price=100, category=[self.category])
@@ -39,6 +57,7 @@ class ProductViewSetTest(APITestCase):
         self.assertEqual(response.data["results"][0]["title"], "Duna")
 
     def test_cria_produto(self):
+        self.autenticar()
         url = reverse("product-list")
         data = {"title": "1984", "price": 3990, "categories_id": [self.category.id]}
         response = self.client.post(url, data, format="json")
@@ -47,6 +66,7 @@ class ProductViewSetTest(APITestCase):
         self.assertEqual(Product.objects.count(), 2)
 
     def test_rejeita_preco_zero(self):
+        self.autenticar()
         url = reverse("product-list")
         data = {"title": "Grátis", "price": 0, "categories_id": [self.category.id]}
         response = self.client.post(url, data, format="json")
