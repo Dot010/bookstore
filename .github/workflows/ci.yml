@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: bookstore_test
+          POSTGRES_USER: bookstore
+          POSTGRES_PASSWORD: bookstore_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bookstore"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      SECRET_KEY: chave-so-para-o-ci-nao-usar-em-producao
+      SQL_ENGINE: django.db.backends.postgresql
+      SQL_DATABASE: bookstore_test
+      SQL_USER: bookstore
+      SQL_PASSWORD: bookstore_ci
+      SQL_HOST: localhost
+      SQL_PORT: "5432"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.15"
+
+      - name: Instala o Poetry
+        run: pip install poetry
+
+      - name: Instala as dependencias
+        run: poetry install --no-root --no-interaction
+
+      - name: Roda os testes
+        run: poetry run python manage.py test
